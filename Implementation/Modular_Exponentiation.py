@@ -9,3 +9,7 @@ def copy(circuit, A, B):
     for i in range(amount_registers):
         circuit.cx(A[i],B[i])
         circuit.barrier()
+
+def full_adder(circuit,a,b,r,c_in,c_out,AUX):
+    
+    print("full adder")
