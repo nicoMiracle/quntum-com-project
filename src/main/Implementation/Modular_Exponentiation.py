@@ -104,6 +104,15 @@ def addition(circuit, a, b, r, aux):
             carry_over(circuit, a[i], b[i], aux[1], aux[0])
     circuit.barrier()
 
+# havent test so dont know if this works
+def subtraction(circuit, a, b, r, aux):
+    circuit.x(b)
+    circuit.x(aux[0]) ## flips this to 1 cus aux[0] will always be the first c_out
+    circuit.barrier()
+    addition(circuit, a, b, r, aux)
+    circuit.x(b)
+    circuit.x(aux[0])
+    circuit.barrier()
 
 ##################################################################
 #                           Simulation
