@@ -3,6 +3,7 @@
 from qiskit import QuantumCircuit,QuantumRegister, ClassicalRegister
 from qiskit . providers . basic_provider import BasicSimulator
 
+#the set_bits function 1.1
 def set_bits(circuit, a, x):
     for i in reversed(range(len(a))):
         if x[i] == "1":

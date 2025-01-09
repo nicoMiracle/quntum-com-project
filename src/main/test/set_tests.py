@@ -1,7 +1,8 @@
 from qiskit import QuantumCircuit
 from qiskit.providers.basic_provider import BasicSimulator
 
-#creates a circuit which should copy 1101 to B qubits
+from src.main.Implementation.Modular_Exponentiation import basic_simulation, set_bits
+
 def set_test():
     A = [0,1,2,3]
     X = "1111"
