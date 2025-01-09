@@ -46,8 +46,12 @@ def full_adder(circuit,a,b,r,c_in,c_out,aux):
 
 # Addition function
 # adds two values made with n number of qubits
+#
+# TODO: need to make this circuit into one of those fancy compact one 
+# otherwise we are gonna be scrolling for days whe we do multiplication
+#
 # prams:
-# circuit: Quantumcircuit
+# circuit: QuantumCircuit
 # a: list of qubit in size n
 # b: list of qubit in size n
 # r: list of qubit in size n
@@ -135,7 +139,7 @@ size_num = 3
 
 a = QuantumRegister(size_num,"a")
 b = QuantumRegister(size_num,"b")
-# c_in = QuantumRegister(1,"c_in")
+# c_in = QuantumRegister(1,"c_in") # needed to remove these for testing of addition
 # c_out = QuantumRegister(1,"c_out")
 r = QuantumRegister(size_num,"r")
 aux = QuantumRegister(4,"AUX")
