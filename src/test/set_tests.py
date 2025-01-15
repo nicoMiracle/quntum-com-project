@@ -7,14 +7,13 @@ def set_bits(circuit, a, x):
             circuit.x(a[i])
 
 
-def set_test():
-    A = [0,1,2,3]
-    X = "1101"
-    circuit = QuantumCircuit(len(A),4)
+def set_test(qubits, x):
+    circuit = QuantumCircuit(len(qubits),4)
     circuit.barrier()
-    set_bits(circuit,A,X)
-    circuit.measure(A,[3,2,1,0])
+    set_bits(circuit,qubits,x)
+    circuit.measure(qubits,[3,2,1,0])
 
+    print("Expected: " + x)
     print(circuit)
     basic_simulation(circuit)
     
@@ -26,7 +25,9 @@ def basic_simulation(circuit):
     # Extract counts and probability distribution
     counts = result.get_counts()
     prob = { key : value / n_shots for key , value in counts.items() }
-    print (" Counts : ", counts )
     print (" Probabilities : ", prob )
     
-set_test()
+set_test([0,1,2,3], "0001")
+set_test([0,1,2,3], "0010")
+set_test([0,1,2,3], "0101")
+set_test([0,1,2,3], "1010")
