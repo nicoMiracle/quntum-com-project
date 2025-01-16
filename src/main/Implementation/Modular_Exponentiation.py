@@ -83,17 +83,20 @@ def subtraction(circuit, a, b, r, aux):
 #modulo
 #
 def modulo(circuit, n, x, r, aux):
-    a = QuantumRegister(len(n), "a")
-    b = QuantumRegister(len(n), "b")
-    r = QuantumRegister(len(n), "r")
-    aux = QuantumRegister(len(n)+2,"AUX")
+    a = QuantumRegister(len(x), "a")
+    b = QuantumRegister(len(x), "b")
+    r = QuantumRegister(len(x), "r")
+    aux = QuantumRegister(len(x)+2,"AUX")
     qu = QuantumCircuit(a,b,r,aux)
     subtraction(qu, a, b, r, aux)
     sub_gate = qu.to_gate(None, "sub").control(1)
     
-    greater_than_or_equal(circuit, x, n, aux[0], aux[*range(1, len(aux))]) 
-    circuit.append(sub_gate, [aux[0], x, n, r, aux[*range(len(n)+1, len(n)*2+3)]])
-    greater_than_or_equal(circuit, x, n, aux[0], aux[range(1, len(aux))]) 
+    n_q = aux[*range(1, len(n)+1)]
+    set_bits(circuit, n_q, n)
+    greater_than_or_equal(circuit, x, n_q, aux[0], aux[*range(len(n)+1, len(aux))]) 
+    circuit.append(sub_gate, [aux[0], x, n_q, r, aux[*range(len(n)+1, len(n)*2+3)]])
+    greater_than_or_equal(circuit, x, n_q, aux[0], aux[*range(len(n)+1, len(aux))])
+    set_bits(circuit, n_q, n)
     
 ##################################################################
 #                           Simulation
