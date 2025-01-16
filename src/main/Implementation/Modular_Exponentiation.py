@@ -97,6 +97,65 @@ def modulo(circuit, n, x, r, aux):
     circuit.append(sub_gate, [aux[0], x, n_q, r, aux[*range(len(n)+1, len(n)*2+3)]])
     greater_than_or_equal(circuit, x, n_q, aux[0], aux[*range(len(n)+1, len(aux))])
     set_bits(circuit, n_q, n)
+
+
+def greater_than_or_equal(circuit,A,B,r,AUX):
+    #assume greater than or equal
+    circuit.x(AUX[2])
+    circuit.x(r)
+    for i in reversed(range(len(A))):
+        #if equal,first AUX is 0, doesn't allow further operations
+        circuit.x(AUX[0])
+        #equality check, do this again later to reverse AUX[0]
+        circuit.ccx(A[i],B[i],AUX[0])
+        circuit.x([A[i]])
+        circuit.x([B[i]])
+        circuit.ccx(A[i],B[i],AUX[0])
+        circuit.x([A[i]])
+        circuit.x([B[i]])
+        circuit.barrier()
+        #end equality check
+
+        #AUX[1] means "isSmaller"- allowed when not equal
+        #make AUX[2] when it is over
+
+        circuit.mcx([AUX[0],AUX[2],B[i]],AUX[1])
+        circuit.ccx(AUX[0],AUX[2],AUX[3])
+        circuit.ccx(AUX[0],AUX[3],AUX[2])
+        #reset AUX[3] to lock AUX[2] once comparison is complete
+        circuit.reset(AUX[3])
+
+        #reverse AUX[0]
+        circuit.ccx(A[i],B[i],AUX[0])
+        circuit.x([A[i]])
+        circuit.x([B[i]])
+        circuit.ccx(A[i],B[i],AUX[0])
+        circuit.x([A[i]])
+        circuit.x([B[i]])
+        circuit.x(AUX[0])
+        circuit.barrier()
+        #end reverse
+    
+    circuit.cx(AUX[1],r)
+    circuit.reset(AUX)
+
+def test_comparison(string,expected):
+    A = QuantumRegister(4,"a")
+    B = QuantumRegister(4,"b")
+    r = QuantumRegister(1,"r")
+    AUX = QuantumRegister(4,"AUX")
+    c_bits = ClassicalRegister(1)
+    circuit = QuantumCircuit(A,B,r,AUX,c_bits)
+    circuit.barrier()
+
+    #A = 0000 B  = 0000
+    set_bits(circuit,[0,1,2,3,4,5,6,7],string)
+    greater_than_or_equal(circuit,A,B,r,AUX)
+    circuit.barrier()
+    circuit.reset(AUX)
+    circuit.measure(r,0)
+    print("Expected: "+expected)
+    aer_simulation(circuit)
     
 ##################################################################
 #                           Simulation
@@ -131,29 +190,44 @@ def aer_simulation(circuit):
     print(" Counts ", counts )
     print(" Probabilities :", probs )
 
-num_size = 5
-aux_size = num_size + 2 # +2 is needed for addition
-classic_size = aux_size # | num_size
+def leftover_main():
+    num_size = 5
+    aux_size = num_size + 2 # +2 is needed for addition
+    classic_size = aux_size # | num_size
 
-a = QuantumRegister(num_size,"a")
-b = QuantumRegister(num_size,"b")
-# c_in = QuantumRegister(1,"c_in") # needed to remove these for testing of addition
-# c_out = QuantumRegister(1,"c_out")
-r = QuantumRegister(num_size,"r")
-aux = QuantumRegister(aux_size,"AUX")
-c_bits = ClassicalRegister(classic_size)
-circuit = QuantumCircuit(a,b,r,aux,c_bits)
-set_bits(circuit, a, "111111")
-set_bits(circuit, b, "001001")
-# circuit.x(aux[0])
-# full_adder(circuit,a,b,r,aux[0],aux[1],aux[2])
-addition(circuit, a, b, r, aux)
+    a = QuantumRegister(num_size,"a")
+    b = QuantumRegister(num_size,"b")
+    # c_in = QuantumRegister(1,"c_in") # needed to remove these for testing of addition
+    # c_out = QuantumRegister(1,"c_out")
+    r = QuantumRegister(num_size,"r")
+    aux = QuantumRegister(aux_size,"AUX")
+    c_bits = ClassicalRegister(classic_size)
+    circuit = QuantumCircuit(a,b,r,aux,c_bits)
+    set_bits(circuit, a, "111111")
+    set_bits(circuit, b, "001001")
+    # circuit.x(aux[0])
+    # full_adder(circuit,a,b,r,aux[0],aux[1],aux[2])
+    addition(circuit, a, b, r, aux)
 
-##mesure if aux is empty
-circuit.measure(aux, [*reversed(range(len(aux)))])
-##mesure result
-# for n, i in zip(reversed(range(r._size)), range(r._size)):
-#     circuit.measure(r[i], n)
-print(circuit)
-basic_simulation(circuit)
-# aer_simulation(circuit)
+    ##mesure if aux is empty
+    circuit.measure(aux, [*reversed(range(len(aux)))])
+    ##mesure result
+    # for n, i in zip(reversed(range(r._size)), range(r._size)):
+    #     circuit.measure(r[i], n)
+    print(circuit)
+    basic_simulation(circuit)
+    # aer_simulation(circuit)
+
+
+test_comparison("00000000","1")
+test_comparison("11111111","1")
+test_comparison("11111110","1")
+test_comparison("11101111","0")
+test_comparison("11110111","1")
+test_comparison("01111111","0")
+test_comparison("10100101","0")
+test_comparison("01011010","1")
+test_comparison("10011001","1")
+test_comparison("01100110","1")
+test_comparison("00001111","0")
+test_comparison("11110000","1")

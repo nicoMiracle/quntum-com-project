@@ -29,7 +29,7 @@ def full_adder(circuit,a,b,r,c_in,c_out,aux):
     circuit.cx(a,aux)
     circuit.barrier()
     
-def add_test(value_a, value_b, expected):
+def add_test(value_a, value_b, value_c_in, expected):
     a = QuantumRegister(1,"a")
     b = QuantumRegister(1,"b")
     c_in = QuantumRegister(1,"c_in") # needed to remove these for testing of addition
@@ -40,6 +40,7 @@ def add_test(value_a, value_b, expected):
     circuit = QuantumCircuit(a,b,r,c_in,c_out,aux,c_bits)
     set_bits(circuit, a, value_a)
     set_bits(circuit, b, value_b)
+    set_bits(circuit,c_in,value_c_in)
     full_adder(circuit, a, b, r, c_in, c_out, aux)
     circuit.measure(r,1)
     circuit.measure(c_out,0)
@@ -56,8 +57,10 @@ def basic_simulation(circuit):
     counts = result.get_counts()
     prob = { key : value / n_shots for key , value in counts.items() }
     print (" Probabilities : ", prob )
-    
-add_test("1", "1", "01")
-add_test("0", "0", "00")
-add_test("1", "0", "10")
-add_test("0", "1", "10")
+
+print("OBS: First digit is sum, second is carry_out.") 
+add_test("0", "0","0", "00")
+add_test("1", "1","0", "01")
+add_test("1", "0","0", "10")
+add_test("0", "1","0", "10")
+add_test("1","1","1","11")
