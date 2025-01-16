@@ -85,7 +85,6 @@ def subtraction(circuit, a, b, r, aux):
 ##################################################################
 
 def basic_simulation(circuit):
-    
     backend = BasicSimulator ()
     n_shots = 1024 # Default number of shots is 1024
     result = backend . run ( circuit , shots = n_shots ) . result ()
@@ -94,30 +93,28 @@ def basic_simulation(circuit):
     prob = { key : value / n_shots for key , value in counts.items() }
     print (" Counts : ", counts )
     print (" Probabilities : ", prob )
-    
+
+# Import the transpile module
+from qiskit import transpile
+# Define the backend AerSimulator
+from qiskit_aer import AerSimulator   
 def aer_simulation(circuit):
-    # Import the transpile module
-    from qiskit import transpile
-    # Define the backend AerSimulator
-    from qiskit_aer import AerSimulator
-    backend = AerSimulator ()
+    backend = AerSimulator()
     # Transpile the circuit to a set of gates
     # compatible with the backend
-    compiled_circuit = transpile ( circuit , backend )
+    compiled_circuit = transpile(circuit, backend )
     # Execute the circuit on the qasm simulator .
     n_shots = 1024 # default number of shots .
-    job_sim = backend . run ( compiled_circuit , shots = n_shots )
+    job_sim = backend.run(compiled_circuit, shots = n_shots)
     # Extract Results
     result_sim = job_sim . result ()
     counts = result_sim . get_counts ( compiled_circuit )
-    probs = { key : value / n_shots for key , value in counts . items () }
-    print (" Counts ", counts )
-    print (" Probabilities :", probs )
-
-
+    probs = {key: value / n_shots for key, value in counts.items()}
+    print(" Counts ", counts )
+    print(" Probabilities :", probs )
 
 num_size = 5
-aux_size = num_size + 2
+aux_size = num_size + 2 # +2 is needed for addition
 classic_size = aux_size # | num_size
 
 a = QuantumRegister(num_size,"a")
