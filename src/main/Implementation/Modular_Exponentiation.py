@@ -79,7 +79,37 @@ def subtraction(circuit, a, b, r, aux):
     circuit.x(b)
     circuit.x(aux[1])
     circuit.barrier()
+  
+#modulo
+#
+def modulo(circuit, n, x, r, aux):
+    a = QuantumRegister(len(n), "a")
+    b = QuantumRegister(len(n), "b")
+    r = QuantumRegister(len(n), "r")
+    aux = QuantumRegister(len(n)+2,"AUX")
+    qu = QuantumCircuit(a,b,r,aux)
+    subtraction(qu, a, b, r, aux)
+    sub_gate = qu.to_gate(None, "sub").control(1)
+    
+    greater_than_or_equal(circuit, n, x, aux[0], aux[*range(1, len(aux))]) 
+    circuit.append(sub_gate, [aux[0], x, n, r, aux[*range(len(n)+1, len(n)*2+3)]])
+    greater_than_or_equal(circuit, n, x, aux[0], aux[range(1, len(aux))]) 
 
+def inv_modulo(circuit, n, x, aux):
+    a = QuantumRegister(len(n), "a")
+    b = QuantumRegister(len(n), "b")
+    r = QuantumRegister(len(n), "r")
+    aux = QuantumRegister(len(n)+2,"AUX")
+    qu = QuantumCircuit(a,b,r,aux)
+    subtraction(qu, a, b, r, aux)
+    sub_gate = qu.to_gate(None, "sub").control(1)
+    
+    greater_than_or_equal(circuit, n, x, aux[0], aux[range(1, len(aux))]) ## dont know if range can be used like this
+    circuit.append(sub_gate, [aux[0], x, n, aux[*range(1, len(n)+1)], aux[*range(len(n)+1, len(n)*2+3)]])
+    copy(aux[*range(1, len(n)+1)], aux[*range(len(n)*2+3, len(n)*3+4)])
+    circuit.append(sub_gate, [aux[0], x, n, aux[*range(1, len(n)+1)], aux[*range(len(n)+1, len(n)*2+3)]])
+    return aux[*range(len(n)*2+3, len(n)*3+4)]
+    
 ##################################################################
 #                           Simulation
 ##################################################################
@@ -132,7 +162,7 @@ set_bits(circuit, b, "001001")
 addition(circuit, a, b, r, aux)
 
 ##mesure if aux is empty
-circuit.measure(aux, [7,6,5,4,3,2,1,0])
+circuit.measure(aux, [*reversed(range(len(aux)))])
 ##mesure result
 # for n, i in zip(reversed(range(r._size)), range(r._size)):
 #     circuit.measure(r[i], n)
