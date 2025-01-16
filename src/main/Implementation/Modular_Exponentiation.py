@@ -91,9 +91,9 @@ def modulo(circuit, n, x, r, aux):
     subtraction(qu, a, b, r, aux)
     sub_gate = qu.to_gate(None, "sub").control(1)
     
-    greater_than_or_equal(circuit, n, x, aux[0], aux[*range(1, len(aux))]) 
+    greater_than_or_equal(circuit, x, n, aux[0], aux[*range(1, len(aux))]) 
     circuit.append(sub_gate, [aux[0], x, n, r, aux[*range(len(n)+1, len(n)*2+3)]])
-    greater_than_or_equal(circuit, n, x, aux[0], aux[range(1, len(aux))]) 
+    greater_than_or_equal(circuit, x, n, aux[0], aux[range(1, len(aux))]) 
     
 ##################################################################
 #                           Simulation
