@@ -62,7 +62,15 @@ def addition(circuit, a, b, r, aux):
         circuit.barrier()
     circuit.barrier()
 
-# havent test so dont know if this works
+# subtraction
+# subtract a with b
+#
+# prams:
+# circuit: QuantumCircuit
+# a: list of qubit in size n
+# b: list of qubit in size n
+# r: list of qubit in size n
+# aux: list of qubits with minimum size of n+2
 def subtraction(circuit, a, b, r, aux):
     circuit.x(b)
     circuit.x(aux[1])  
@@ -108,15 +116,17 @@ def aer_simulation(circuit):
 
 
 
-size_num = 5
+num_size = 5
+aux_size = num_size + 2
+classic_size = aux_size # | num_size
 
-a = QuantumRegister(size_num,"a")
-b = QuantumRegister(size_num,"b")
+a = QuantumRegister(num_size,"a")
+b = QuantumRegister(num_size,"b")
 # c_in = QuantumRegister(1,"c_in") # needed to remove these for testing of addition
 # c_out = QuantumRegister(1,"c_out")
-r = QuantumRegister(size_num,"r")
-aux = QuantumRegister(8,"AUX")
-c_bits = ClassicalRegister(8)
+r = QuantumRegister(num_size,"r")
+aux = QuantumRegister(aux_size,"AUX")
+c_bits = ClassicalRegister(classic_size)
 circuit = QuantumCircuit(a,b,r,aux,c_bits)
 set_bits(circuit, a, "111111")
 set_bits(circuit, b, "001001")
@@ -125,8 +135,8 @@ set_bits(circuit, b, "001001")
 addition(circuit, a, b, r, aux)
 
 ##mesure if aux is empty
-
 circuit.measure(aux, [7,6,5,4,3,2,1,0])
+##mesure result
 # for n, i in zip(reversed(range(r._size)), range(r._size)):
 #     circuit.measure(r[i], n)
 print(circuit)
