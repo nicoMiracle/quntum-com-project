@@ -94,21 +94,6 @@ def modulo(circuit, n, x, r, aux):
     greater_than_or_equal(circuit, n, x, aux[0], aux[*range(1, len(aux))]) 
     circuit.append(sub_gate, [aux[0], x, n, r, aux[*range(len(n)+1, len(n)*2+3)]])
     greater_than_or_equal(circuit, n, x, aux[0], aux[range(1, len(aux))]) 
-
-def inv_modulo(circuit, n, x, aux):
-    a = QuantumRegister(len(n), "a")
-    b = QuantumRegister(len(n), "b")
-    r = QuantumRegister(len(n), "r")
-    aux = QuantumRegister(len(n)+2,"AUX")
-    qu = QuantumCircuit(a,b,r,aux)
-    subtraction(qu, a, b, r, aux)
-    sub_gate = qu.to_gate(None, "sub").control(1)
-    
-    greater_than_or_equal(circuit, n, x, aux[0], aux[range(1, len(aux))]) ## dont know if range can be used like this
-    circuit.append(sub_gate, [aux[0], x, n, aux[*range(1, len(n)+1)], aux[*range(len(n)+1, len(n)*2+3)]])
-    copy(aux[*range(1, len(n)+1)], aux[*range(len(n)*2+3, len(n)*3+4)])
-    circuit.append(sub_gate, [aux[0], x, n, aux[*range(1, len(n)+1)], aux[*range(len(n)+1, len(n)*2+3)]])
-    return aux[*range(len(n)*2+3, len(n)*3+4)]
     
 ##################################################################
 #                           Simulation
