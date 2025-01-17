@@ -85,26 +85,25 @@ def subtraction(circuit, a, b, r, aux):
 
 
 ## made my own since i didnt want to mess with stuff i didnt know how it worked
+# it calculates the comparison by calculating the carry out in a subtraction
 def greater_than_or_equal(circuit,a,b,r,aux):
-    aux_r = aux[:len(a)]
-    aux_aux = aux[len(a):len(a)*2+2]
     circuit.x(b)
-    circuit.x(aux_aux[1])
+    circuit.x(aux[1])
     for i in reversed(range(len(a))):
         _p = len(a)-i
-        circuit.ccx(a[i],b[i], aux_aux[_p+1])
+        circuit.ccx(a[i],b[i], aux[_p+1])
         circuit.cx(a[i],b[i])
-        circuit.ccx(b[i],aux_aux[_p],aux_aux[_p+1])
+        circuit.ccx(b[i],aux[_p],aux[_p+1])
         circuit.cx(a[i],b[i])
-    circuit.cx(aux_aux[-1], r)
+    circuit.cx(aux[-1], r)
     for i in range(len(a)):
         _p = len(a)-i
-        circuit.ccx(a[i],b[i], aux_aux[_p+1])
+        circuit.ccx(a[i],b[i], aux[_p+1])
         circuit.cx(a[i],b[i])
-        circuit.ccx(b[i],aux_aux[_p],aux_aux[_p+1])
+        circuit.ccx(b[i],aux[_p],aux[_p+1])
         circuit.cx(a[i],b[i])
     circuit.x(b)
-    circuit.x(aux_aux[1])
+    circuit.x(aux[1])
 
 
 ##for use in circuit.append
@@ -114,7 +113,7 @@ def get_qbits(control_qbits, listoflist):
     return control_qbits    
         
 #modulo
-# aux needs to be len(x)*3+3
+# aux needs to be len(x)*2+3
 def modulo(circuit, n, x, r, aux):
     qa = QuantumRegister(len(x), "sa")
     qb = QuantumRegister(len(x), "sb")
@@ -131,24 +130,23 @@ def modulo(circuit, n, x, r, aux):
     qna = QuantumRegister(len(x), "ga")
     qnb = QuantumRegister(len(x), "gb")
     qnr = QuantumRegister(1, "gr")
-    qnaux = QuantumRegister(len(x)*2+2,"gAUX")
+    qnaux = QuantumRegister(len(x)+2,"gAUX")
     qnu = QuantumCircuit(qna,qnb,qnr,qnaux)
     greater_than_or_equal(qnu, qna, qnb, qnr, qnaux)
     comp_gate = qnu.to_gate(None, "mycomp")
     
     n_q = aux[1: len(x)+1]
-    c_a = aux[len(x)+1: len(x)*3+3]
-    s_a = aux[len(x)+1: len(x)*2+3]
+    m_a = aux[len(x)+1: len(x)*2+3]
     set_bits(circuit, n_q, n)
-    circuit.append(comp_gate, get_qbits([], [x, n_q, [aux[0]], c_a]))
-    circuit.append(sub_gate, get_qbits([aux[0]], [x, n_q, r, s_a]))
+    circuit.append(comp_gate, get_qbits([], [x, n_q, [aux[0]], m_a]))
+    circuit.append(sub_gate, get_qbits([aux[0]], [x, n_q, r, m_a]))
     circuit.x(aux[0])
     circuit.append(copy_gate, get_qbits([aux[0]], [x, r]))
     circuit.x(aux[0])
-    circuit.append(comp_gate, get_qbits([], [x, n_q, [aux[0]], c_a]))
+    circuit.append(comp_gate, get_qbits([], [x, n_q, [aux[0]], m_a]))
     set_bits(circuit, n_q, n)
     
-## need len(a)*4+3
+## need len(a)*3+3
 def add_mod(circuit, n, a, b, r, aux):
     qa = QuantumRegister(len(a), "A")
     qb = QuantumRegister(len(a), "B")
@@ -160,13 +158,13 @@ def add_mod(circuit, n, a, b, r, aux):
     
     a_r = aux[:len(a)]
     a_aux= aux[len(a):len(a)*2+2]
-    m_aux = aux[len(a):len(a)*4+3]
+    m_aux = aux[len(a):len(a)*3+3]
     
     circuit.append(add_gate, get_qbits([], [a, b, a_r, a_aux]))
     modulo(circuit, n, a_r, r, m_aux)
     
     
-## need len(a)*5+3
+## need len(a)*4+3
 def double_mod(circuit, n, a, r, aux):
     b = aux[:len(a)]
     copy(circuit, a, b)
@@ -209,13 +207,11 @@ def aer_simulation(circuit):
 
 
 num_size = 3
-aux_size = num_size*5+3 # +2 is needed for addition
+aux_size = num_size*4+3 # +2 is needed for addition
 classic_size = num_size#aux_size # | num_size
 
 a = QuantumRegister(num_size,"a")
 b = QuantumRegister(num_size,"b")
-# c_in = QuantumRegister(1,"c_in") # needed to remove these for testing of addition
-# c_out = QuantumRegister(1,"c_out")
 r = QuantumRegister(num_size,"r")
 aux = QuantumRegister(aux_size,"AUX")
 c_bits = ClassicalRegister(classic_size +1)
