@@ -88,22 +88,22 @@ def subtraction(circuit, a, b, r, aux):
 # it calculates the comparison by calculating the carry out in a subtraction
 def greater_than_or_equal(circuit,a,b,r,aux):
     circuit.x(b)
-    circuit.x(aux[1])
+    circuit.x(aux[0])
     for i in reversed(range(len(a))):
         _p = len(a)-i
-        circuit.ccx(a[i],b[i], aux[_p+1])
+        circuit.ccx(a[i],b[i], aux[_p])
         circuit.cx(a[i],b[i])
-        circuit.ccx(b[i],aux[_p],aux[_p+1])
+        circuit.ccx(b[i],aux[_p-1],aux[_p])
         circuit.cx(a[i],b[i])
-    circuit.cx(aux[-1], r)
+    circuit.cx(aux[len(a)], r)
     for i in range(len(a)):
         _p = len(a)-i
-        circuit.ccx(a[i],b[i], aux[_p+1])
+        circuit.ccx(a[i],b[i], aux[_p])
         circuit.cx(a[i],b[i])
-        circuit.ccx(b[i],aux[_p],aux[_p+1])
+        circuit.ccx(b[i],aux[_p-1],aux[_p])
         circuit.cx(a[i],b[i])
     circuit.x(b)
-    circuit.x(aux[1])
+    circuit.x(aux[0])
 
 
 ##for use in circuit.append
@@ -130,20 +130,21 @@ def modulo(circuit, n, x, r, aux):
     qna = QuantumRegister(len(x), "ga")
     qnb = QuantumRegister(len(x), "gb")
     qnr = QuantumRegister(1, "gr")
-    qnaux = QuantumRegister(len(x)+2,"gAUX")
+    qnaux = QuantumRegister(len(x)+1,"gAUX")
     qnu = QuantumCircuit(qna,qnb,qnr,qnaux)
     greater_than_or_equal(qnu, qna, qnb, qnr, qnaux)
     comp_gate = qnu.to_gate(None, "mycomp")
     
     n_q = aux[1: len(x)+1]
+    c_a = aux[len(x)+1: len(x)*2+2]
     m_a = aux[len(x)+1: len(x)*2+3]
     set_bits(circuit, n_q, n)
-    circuit.append(comp_gate, get_qbits([], [x, n_q, [aux[0]], m_a]))
+    circuit.append(comp_gate, get_qbits([], [x, n_q, [aux[0]], c_a]))
     circuit.append(sub_gate, get_qbits([aux[0]], [x, n_q, r, m_a]))
     circuit.x(aux[0])
     circuit.append(copy_gate, get_qbits([aux[0]], [x, r]))
     circuit.x(aux[0])
-    circuit.append(comp_gate, get_qbits([], [x, n_q, [aux[0]], m_a]))
+    circuit.append(comp_gate, get_qbits([], [x, n_q, [aux[0]], c_a]))
     set_bits(circuit, n_q, n)
     
 ## need len(a)*3+3

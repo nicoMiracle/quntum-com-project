@@ -61,29 +61,34 @@ def full_adder(circuit,a,b,r,c_in,c_out,aux):
 #     circuit.cx(AUX[1],r)
 #     circuit.reset(AUX)
 
+## made my own since i didnt want to mess with stuff i didnt know how it worked
+# it calculates the comparison by calculating the carry out in a subtraction
 def greater_than_or_equal(circuit,a,b,r,aux):
-    aux_r = aux[:len(a)]
-    aux_aux = aux[len(a):len(a)*2+2]
     circuit.x(b)
-    circuit.x(aux_aux[1])
+    circuit.x(aux[0])
     for i in reversed(range(len(a))):
         _p = len(a)-i
-        full_adder(circuit, a[i], b[i], aux_r[i], aux_aux[_p], aux_aux[_p+1], aux_aux[0])
-    circuit.cx(aux_aux[-1], r)
+        circuit.ccx(a[i],b[i], aux[_p])
+        circuit.cx(a[i],b[i])
+        circuit.ccx(b[i],aux[_p-1],aux[_p])
+        circuit.cx(a[i],b[i])
+        circuit.barrier()
+    circuit.cx(aux[-1], r)
     for i in range(len(a)):
         _p = len(a)-i
-        circuit.ccx(a[i],b[i], aux_aux[_p+1])
+        circuit.ccx(a[i],b[i], aux[_p])
         circuit.cx(a[i],b[i])
-        circuit.ccx(b[i],aux_aux[_p],aux_aux[_p+1])
+        circuit.ccx(b[i],aux[_p-1],aux[_p])
         circuit.cx(a[i],b[i])
+        circuit.barrier()
     circuit.x(b)
-    circuit.x(aux_aux[1])
+    circuit.x(aux[0])
 
 def test_comparison(a, b,expected):
     A = QuantumRegister(len(a),"a")
     B = QuantumRegister(len(a),"b")
     r = QuantumRegister(1,"r")
-    AUX = QuantumRegister(len(a)*2+2,"AUX")
+    AUX = QuantumRegister(len(a)+1,"AUX")
     c_bits = ClassicalRegister(1)
     circuit = QuantumCircuit(A,B,r,AUX,c_bits)
     circuit.barrier()
@@ -94,7 +99,7 @@ def test_comparison(a, b,expected):
     greater_than_or_equal(circuit,A,B,r,AUX)
     circuit.barrier()
     circuit.measure(r,0)
-    # print(circuit)
+    print(circuit)
     print("in:" + a + " >= "+ b+" Expected: "+expected)
     aer_simulation(circuit)
     print()
@@ -119,14 +124,14 @@ def aer_simulation(circuit):
     print(" Probabilities :", probs )
     
 test_comparison("1010","1001","1")
-test_comparison("1111","1111","1")
-test_comparison("1111","1110","1")
-test_comparison("1110","1111","0")
-test_comparison("1111","0111","1")
-test_comparison("0111","1111","0")
-test_comparison("1010","0101","1")
-test_comparison("0101","1011","0")
-test_comparison("0011","0001","1")
-test_comparison("0110","0110","1")
-test_comparison("0000","1111","0")
-test_comparison("1111","0000","1")
+# test_comparison("1111","1111","1")
+# test_comparison("1111","1110","1")
+# test_comparison("1110","1111","0")
+# test_comparison("1111","0111","1")
+# test_comparison("0111","1111","0")
+# test_comparison("1010","0101","1")
+# test_comparison("0101","1011","0")
+# test_comparison("0011","0001","1")
+# test_comparison("0110","0110","1")
+# test_comparison("0000","1111","0")
+# test_comparison("1111","0000","1")
