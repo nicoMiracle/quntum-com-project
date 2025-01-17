@@ -81,45 +81,7 @@ def subtraction(circuit, a, b, r, aux):
     circuit.x(aux[1])
     # circuit.barrier()
 
-# def greater_than_or_equal(circuit,A,B,r,AUX):
-#     #assume greater than or equal
-#     circuit.x(AUX[2])
-#     circuit.x(r)
-#     for i in reversed(range(len(A))):
-#         #if equal,first AUX is 0, doesn't allow further operations
-#         circuit.x(AUX[0])
-#         #equality check, do this again later to reverse AUX[0]
-#         circuit.ccx(A[i],B[i],AUX[0])
-#         circuit.x([A[i]])
-#         circuit.x([B[i]])
-#         circuit.ccx(A[i],B[i],AUX[0])
-#         circuit.x([A[i]])
-#         circuit.x([B[i]])
-#         circuit.barrier()
-#         #end equality check
 
-#         #AUX[1] means "isSmaller"- allowed when not equal
-#         #make AUX[2] when it is over
-
-#         circuit.mcx([AUX[0],AUX[2],B[i]],AUX[1])
-#         circuit.ccx(AUX[0],AUX[2],AUX[3])
-#         circuit.ccx(AUX[0],AUX[3],AUX[2])
-#         #reset AUX[3] to lock AUX[2] once comparison is complete
-#         circuit.reset(AUX[3])
-
-#         #reverse AUX[0]
-#         circuit.ccx(A[i],B[i],AUX[0])
-#         circuit.x([A[i]])
-#         circuit.x([B[i]])
-#         circuit.ccx(A[i],B[i],AUX[0])
-#         circuit.x([A[i]])
-#         circuit.x([B[i]])
-#         circuit.x(AUX[0])
-#         circuit.barrier()
-#         #end reverse
-    
-#     circuit.cx(AUX[1],r)
-#     circuit.reset(AUX)
 
 
 ## made my own since i didnt want to mess with stuff i didnt know how it worked
