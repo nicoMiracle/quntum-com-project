@@ -71,8 +71,6 @@ def add_test(value_a, value_b, expected):
     size_num = len(expected)
     a = QuantumRegister(size_num,"a")
     b = QuantumRegister(size_num,"b")
-    # c_in = QuantumRegister(1,"c_in") # needed to remove these for testing of addition
-    # c_out = QuantumRegister(1,"c_out")
     r = QuantumRegister(size_num,"r")
     aux = QuantumRegister(size_num+2,"AUX")
     c_bits = ClassicalRegister(size_num)
@@ -83,18 +81,17 @@ def add_test(value_a, value_b, expected):
 
     for n, i in zip(reversed(range(r._size)), range(r._size)):
         circuit.measure(r[i], n)
-
-    print("Expected: " + expected)
+    
+    print("in: "+ value_a +" + "+ value_b +" Expected: " + expected)
     basic_simulation(circuit)
+    print()
     
 def sub_test(value_a, value_b, expected):
     size_num = len(expected)
     a = QuantumRegister(size_num,"a")
     b = QuantumRegister(size_num,"b")
-    # c_in = QuantumRegister(1,"c_in") # needed to remove these for testing of addition
-    # c_out = QuantumRegister(1,"c_out")
     r = QuantumRegister(size_num,"r")
-    aux = QuantumRegister(size_num+3,"AUX")
+    aux = QuantumRegister(size_num+2,"AUX")
     c_bits = ClassicalRegister(size_num)
     circuit = QuantumCircuit(a,b,r,aux,c_bits)
     set_bits(circuit, a, value_a)
@@ -103,9 +100,10 @@ def sub_test(value_a, value_b, expected):
 
     for n, i in zip(reversed(range(r._size)), range(r._size)):
         circuit.measure(r[i], n)
-
-    print("Expected: " + expected)
+    print(circuit)
+    print("in: "+ value_a +" - "+ value_b +" Expected: " + expected)
     basic_simulation(circuit)
+    print()
     
     
 def basic_simulation(circuit):
@@ -116,22 +114,25 @@ def basic_simulation(circuit):
     counts = result.get_counts()
     prob = { key : value / n_shots for key , value in counts.items() }
     print (" Probabilities : ", prob )
+    
 
-print("Addition tests:")
-add_test("0001", "0001", "0010")
-add_test("0000", "0000", "0000")
-add_test("0001", "1111", "0000")
-add_test("0101", "0001", "0110")
-add_test("10001", "00001", "10010")
-add_test("11111", "11111", "11110")
-add_test("00001", "11111", "00000")
-add_test("00101", "00001", "00110")
-print("Subtraction tests:")
-sub_test("0001", "0001", "0000")
-sub_test("0000", "0000", "0000")
-sub_test("1111", "0001", "1110")
-sub_test("0101", "0001", "0100")
-sub_test("10001", "00001", "10000")
-sub_test("11111", "11111", "00000")
-sub_test("01111", "00001", "01110")
-sub_test("10101", "10001", "00100")
+# print("Addition tests:")
+# add_test("0001", "0001", "0010")
+# add_test("0000", "0000", "0000")
+# add_test("0001", "1111", "0000")
+# add_test("0101", "0001", "0110")
+# add_test("10001", "00001", "10010")
+# add_test("11111", "11111", "11110")
+# add_test("00001", "11111", "00000")
+# add_test("00101", "00001", "00110")
+# print("Subtraction tests:")
+# sub_test("0001", "0001", "0000")
+# sub_test("0011", "0010", "0001")
+# sub_test("0000", "0000", "0000")
+# sub_test("1111", "0001", "1110")
+# sub_test("0101", "0001", "0100")
+# sub_test("10101", "00101", "10000")
+# sub_test("11111", "11111", "00000")
+# sub_test("01111", "00011", "01100")
+# sub_test("10101", "10001", "00100")
+sub_test("111", "100", "011")
