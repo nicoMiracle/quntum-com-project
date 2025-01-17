@@ -122,7 +122,7 @@ def subtraction(circuit, a, b, r, aux):
 #     circuit.reset(AUX)
 
 
-## made my own since i didnt want to mess with stuff i didnt know what did what
+## made my own since i didnt want to mess with stuff i didnt know how it worked
 def greater_than_or_equal(circuit,a,b,r,aux):
     aux_r = aux[:len(a)]
     aux_aux = aux[len(a):len(a)*2+2]
