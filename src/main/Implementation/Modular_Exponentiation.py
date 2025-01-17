@@ -146,10 +146,10 @@ def greater_than_or_equal(circuit,a,b,r,aux):
 
 
 ##for use in circuit.append
-def get_qbits(list, listoflist):
+def get_qbits(control_qbits, listoflist):
     for i in range(len(listoflist)):
-        list.extend(listoflist[i])
-    return list    
+        control_qbits.extend(listoflist[i])
+    return control_qbits    
         
 #modulo
 # aux needs to be len(x)*3+3
@@ -186,6 +186,32 @@ def modulo(circuit, n, x, r, aux):
     circuit.append(comp_gate, get_qbits([], [x, n_q, [aux[0]], c_a]))
     set_bits(circuit, n_q, n)
     
+## need len(a)*4+3
+def add_mod(circuit, n, a, b, r, aux):
+    qa = QuantumRegister(len(a), "A")
+    qb = QuantumRegister(len(a), "B")
+    qr = QuantumRegister(len(a), "R")
+    qaux = QuantumRegister(len(a)+2,"AUX")
+    qu = QuantumCircuit(qa,qb,qr,qaux)
+    addition(qu, qa, qb, qr, qaux)
+    add_gate = qu.to_gate(None, "myadd")
+    
+    a_r = aux[:len(a)]
+    a_aux= aux[len(a):len(a)*2+2]
+    m_aux = aux[len(a):len(a)*4+3]
+    
+    circuit.append(add_gate, get_qbits([], [a, b, a_r, a_aux]))
+    modulo(circuit, n, a_r, r, m_aux)
+    
+    
+## need len(a)*5+3
+def double_mod(circuit, n, a, r, aux):
+    b = aux[:len(a)]
+    copy(circuit, a, b)
+    a_aux = aux[len(a):]
+    add_mod(circuit, n, a, b, r, a_aux)
+    copy(circuit, a, b)
+    
 ##################################################################
 #                           Simulation
 ##################################################################
@@ -221,7 +247,7 @@ def aer_simulation(circuit):
 
 
 num_size = 3
-aux_size = num_size*4 # +2 is needed for addition
+aux_size = num_size*5+3 # +2 is needed for addition
 classic_size = num_size#aux_size # | num_size
 
 a = QuantumRegister(num_size,"a")
@@ -232,9 +258,9 @@ r = QuantumRegister(num_size,"r")
 aux = QuantumRegister(aux_size,"AUX")
 c_bits = ClassicalRegister(classic_size +1)
 circuit = QuantumCircuit(a,b,r,aux,c_bits)
-set_bits(circuit, a, "100")
-set_bits(circuit, b, "100")
-modulo(circuit, "011", a, r, aux)
+set_bits(circuit, a, "010")
+set_bits(circuit, b, "011")
+double_mod(circuit, "111", a, r, aux)
 ##mesure if aux is empty
 circuit.barrier()
 # circuit.measure(aux, [*reversed(range(len(aux)))])

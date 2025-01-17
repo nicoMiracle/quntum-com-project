@@ -58,6 +58,7 @@ def test_comparison(a, b,expected):
     # print(circuit)
     print("in:" + a + " >= "+ b+" Expected: "+expected)
     aer_simulation(circuit)
+    print()
     
 # Import the transpile module
 from qiskit import transpile
@@ -86,7 +87,7 @@ test_comparison("1111","0111","1")
 test_comparison("0111","1111","0")
 test_comparison("1010","0101","1")
 test_comparison("0101","1011","0")
-test_comparison("1011","1001","1")
+test_comparison("0011","0001","1")
 test_comparison("0110","0110","1")
 test_comparison("0000","1111","0")
 test_comparison("1111","0000","1")
