@@ -1,7 +1,9 @@
 from qiskit import QuantumCircuit
 from qiskit.providers.basic_provider import BasicSimulator
 
+#the set_bits function 1.1
 def set_bits(circuit, a, x):
+    x = x[::-1]
     for i in reversed(range(len(a))):
         if x[i] == "1":
             circuit.x(a[i])
