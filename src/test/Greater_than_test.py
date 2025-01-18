@@ -3,6 +3,7 @@ from qiskit . providers . basic_provider import BasicSimulator
 
 #the set_bits function 1.1
 def set_bits(circuit, a, x):
+    x = x[::-1]
     for i in reversed(range(len(a))):
         if x[i] == "1":
             circuit.x(a[i])
@@ -21,6 +22,7 @@ def full_adder(circuit,a,b,r,c_in,c_out,aux):
     circuit.cx(b,aux)
     circuit.cx(a,aux)
 
+#Old version of greater than or equal
 # def greater_than_or_equal(circuit,A,B,r,AUX):
 #     #assume greater than or equal
 #     circuit.x(AUX[2])
@@ -93,7 +95,7 @@ def test_comparison(a, b,expected):
     circuit = QuantumCircuit(A,B,r,AUX,c_bits)
     circuit.barrier()
 
-    #A = 0000 B  = 0000
+    #A = 1010 B= 1001
     set_bits(circuit,A,a)
     set_bits(circuit,B,b)
     greater_than_or_equal(circuit,A,B,r,AUX)
