@@ -21,7 +21,7 @@ def copy_experiment_all_one():
     circuit.x(3)
     circuit.barrier()
     copy(circuit,A,B)
-    circuit.measure(B,[3,2,1,0])
+    circuit.measure(B,[0,1,2,3])
 
     print(circuit)
     basic_simulation(circuit)
@@ -33,7 +33,7 @@ def copy_experiment_all_zero():
     circuit = QuantumCircuit(len(A)+len(B),4)
     circuit.barrier()
     copy(circuit,A,B)
-    circuit.measure(B,[3,2,1,0])
+    circuit.measure(B,[0,1,2,3])
 
     print(circuit)
     basic_simulation(circuit)
@@ -48,7 +48,7 @@ def copy_experiment_varied():
     circuit.x(3)
     circuit.barrier()
     copy(circuit,A,B)
-    circuit.measure(B,[3,2,1,0])
+    circuit.measure(B,[0,1,2,3])
 
     print(circuit)
     basic_simulation(circuit)

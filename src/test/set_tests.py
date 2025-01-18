@@ -13,7 +13,7 @@ def set_test(qubits, x):
     circuit = QuantumCircuit(len(qubits),4)
     circuit.barrier()
     set_bits(circuit,qubits,x)
-    circuit.measure(qubits,[3,2,1,0])
+    circuit.measure(qubits,[0,1,2,3])
 
     print("Expected: " + x)
     print(circuit)

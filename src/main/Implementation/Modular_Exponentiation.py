@@ -51,17 +51,20 @@ def full_adder(circuit,a,b,r,c_in,c_out,aux):
 # r: list of qubit in size n
 # aux: list of qubits with minimum size of n+2
 def addition(circuit, a, b, r, aux):    
-    for i in reversed(range(len(a))):
-        _p = len(a)-i
-        full_adder(circuit, a[i], b[i], r[i], aux[_p], aux[_p+1], aux[0])
     for i in range(len(a)):
-        _p = len(a)-i
+        #initialise _p
+        _p = 1+i
+        full_adder(circuit, a[i], b[i], r[i], aux[_p], aux[_p+1], aux[0])
+    
+    #reset aux to 0
+    for i in reversed(range(len(a))):
+        _p = 1+i
         circuit.ccx(a[i],b[i], aux[_p+1])
         circuit.cx(a[i],b[i])
         circuit.ccx(b[i],aux[_p],aux[_p+1])
         circuit.cx(a[i],b[i])
-        # circuit.barrier()
-    # circuit.barrier()
+        #circuit.barrier()
+    #circuit.barrier()
 
 # subtraction
 # subtract a with b
