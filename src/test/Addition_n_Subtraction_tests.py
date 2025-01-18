@@ -95,7 +95,7 @@ def add_test(value_a, value_b, expected):
     b = QuantumRegister(size_num,"b")
     r = QuantumRegister(size_num,"r")
     aux = QuantumRegister(size_num+2,"AUX")
-    c_bits = ClassicalRegister(size_num+2)
+    c_bits = ClassicalRegister(size_num)
     circuit = QuantumCircuit(a,b,r,aux,c_bits)
     set_bits(circuit, a, value_a)
     set_bits(circuit, b, value_b)

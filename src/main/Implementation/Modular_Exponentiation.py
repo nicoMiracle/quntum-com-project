@@ -211,7 +211,7 @@ def aer_simulation(circuit):
     print(" Counts ", counts )
     print(" Probabilities :", probs )
 
-
+"""
 num_size = 3
 aux_size = num_size*4+3 # +2 is needed for addition
 classic_size = num_size#aux_size # | num_size
@@ -233,3 +233,4 @@ circuit.measure(r, [*reversed(range(len(r)))])
 print(circuit)
 # basic_simulation(circuit)
 aer_simulation(circuit)
+"""
