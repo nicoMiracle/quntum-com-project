@@ -86,26 +86,27 @@ def subtraction(circuit, a, b, r, aux):
     # circuit.barrier()
 
 
-
-
 ## made my own since i didnt want to mess with stuff i didnt know how it worked
 # it calculates the comparison by calculating the carry out in a subtraction
 def greater_than_or_equal(circuit,a,b,r,aux):
     circuit.x(b)
     circuit.x(aux[0])
-    for i in reversed(range(len(a))):
-        _p = len(a)-i
-        circuit.ccx(a[i],b[i], aux[_p])
-        circuit.cx(a[i],b[i])
-        circuit.ccx(b[i],aux[_p-1],aux[_p])
-        circuit.cx(a[i],b[i])
-    circuit.cx(aux[len(a)], r)
     for i in range(len(a)):
-        _p = len(a)-i
+        _p = 1+i
         circuit.ccx(a[i],b[i], aux[_p])
         circuit.cx(a[i],b[i])
         circuit.ccx(b[i],aux[_p-1],aux[_p])
         circuit.cx(a[i],b[i])
+        circuit.barrier()
+    #last bit in the aux register
+    circuit.cx(aux[-1], r)
+    for i in reversed(range(len(a))):
+        _p = 1+i
+        circuit.ccx(a[i],b[i], aux[_p])
+        circuit.cx(a[i],b[i])
+        circuit.ccx(b[i],aux[_p-1],aux[_p])
+        circuit.cx(a[i],b[i])
+        circuit.barrier()
     circuit.x(b)
     circuit.x(aux[0])
 
