@@ -1,5 +1,6 @@
 from qiskit import QuantumCircuit
 from qiskit.providers.basic_provider import BasicSimulator
+from qiskit import QuantumCircuit,QuantumRegister, ClassicalRegister
 
 #the set_bits function 1.1
 def set_bits(circuit, a, x):
@@ -9,14 +10,16 @@ def set_bits(circuit, a, x):
             circuit.x(a[i])
 
 
-def set_test(qubits, x):
-    circuit = QuantumCircuit(len(qubits),4)
+def set_test(size, x):
+    qbits = QuantumRegister(size,"q")
+    classical = ClassicalRegister(size,"c_")
+    circuit = QuantumCircuit(qbits,classical)
     circuit.barrier()
-    set_bits(circuit,qubits,x)
-    circuit.measure(qubits,[0,1,2,3])
+    set_bits(circuit,qbits,x)
+    circuit.measure(qbits ,classical)
 
     print("Expected: " + x)
-    print(circuit)
+
     basic_simulation(circuit)
     
     
@@ -28,8 +31,15 @@ def basic_simulation(circuit):
     counts = result.get_counts()
     prob = { key : value / n_shots for key , value in counts.items() }
     print (" Probabilities : ", prob )
-    
-set_test([0,1,2,3], "0001")
-set_test([0,1,2,3], "0010")
-set_test([0,1,2,3], "0101")
-set_test([0,1,2,3], "1010")
+
+set_test(1,"0")
+set_test(1,"1")
+set_test(2,"10")
+set_test(3,"000")
+set_test(3,"101")
+set_test(3,"100")
+set_test(4, "0001")
+set_test(4, "0010")
+set_test(4, "0101")
+set_test(4, "1010")
+set_test(24,"101001111010101110111101")
