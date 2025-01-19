@@ -206,24 +206,3 @@ def aer_simulation(circuit):
     print(" Probabilities :", probs )
 
 
-num_size = 3
-aux_size = num_size*3+3 # amount needed for times_two_mod
-classic_size = num_size
-
-a = QuantumRegister(num_size,"a")
-# b = QuantumRegister(num_size,"b")
-r = QuantumRegister(num_size,"r")
-aux = QuantumRegister(aux_size,"AUX")
-c_bits = ClassicalRegister(classic_size)
-circuit = QuantumCircuit(a,r,aux,c_bits)
-
-set_bits(circuit, a, "011")
-# set_bits(circuit, b, "011")
-times_two_mod(circuit, "100", a, r, aux)
-circuit.barrier()
-circuit.measure(r,c_bits)
-
-print(circuit)
-aer_simulation(circuit)
-
-
