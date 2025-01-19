@@ -1,6 +1,6 @@
 #Nicole Nechita, rone8293
 
-from qiskit import QuantumCircuit,QuantumRegister,ClassicalRegister
+from qiskit import QuantumCircuit
 from qiskit . providers . basic_provider import BasicSimulator
 
 def copy(circuit, A, B):
@@ -9,25 +9,48 @@ def copy(circuit, A, B):
         circuit.cx(A[i],B[i])
         circuit.barrier()
 
-def set_bits(circuit, a, x):
-    x = x[::-1]
-    for i in reversed(range(len(a))):
-        if x[i] == "1":
-            circuit.x(a[i])
-
 
 #creates a circuit which should copy 1111 to B qubits
-def copy_test(size,A_text):
-    AQ = QuantumRegister(size,"A")
-    B = QuantumRegister(size,"B")
-    c_bit= ClassicalRegister(size,"c")
-    circuit = QuantumCircuit(AQ,B,c_bit)
-    set_bits(circuit,AQ,A_text)
+def copy_experiment_all_one():
+    A = [0,1,2,3]
+    B = [4,5,6,7]
+    circuit = QuantumCircuit(len(A)+len(B),4)
+    circuit.x(0)
+    circuit.x(1)
+    circuit.x(2)
+    circuit.x(3)
     circuit.barrier()
-    copy(circuit,AQ,B)
-    print("Expected: " + A_text)
-    circuit.measure(B,c_bit)
+    copy(circuit,A,B)
+    circuit.measure(B,[0,1,2,3])
 
+    print(circuit)
+    basic_simulation(circuit)
+
+#creates a circuit which should copy 0000 to B qubits
+def copy_experiment_all_zero():
+    A = [0,1,2,3]
+    B = [4,5,6,7]
+    circuit = QuantumCircuit(len(A)+len(B),4)
+    circuit.barrier()
+    copy(circuit,A,B)
+    circuit.measure(B,[0,1,2,3])
+
+    print(circuit)
+    basic_simulation(circuit)
+
+#creates a circuit which should copy 1101 to B qubits
+def copy_experiment_varied():
+    A = [0,1,2,3]
+    B = [4,5,6,7]
+    circuit = QuantumCircuit(len(A)+len(B),4)
+    circuit.x(0)
+    circuit.x(1)
+    circuit.x(3)
+    circuit.barrier()
+    copy(circuit,A,B)
+    circuit.measure(B,[0,1,2,3])
+
+    print(circuit)
     basic_simulation(circuit)
 
 #auxiliary function for basic simulation
@@ -42,13 +65,9 @@ def basic_simulation(circuit):
     print (" Counts : ", counts )
     print (" Probabilities : ", prob )
 
-copy_test(1,"0")
-copy_test(1,"1")
-copy_test(2,"01")
-copy_test(3,"011")
-copy_test(4,"0101")
-copy_test(4,"0001")
+copy_experiment_all_one()
+copy_experiment_all_zero()
+copy_experiment_varied()
 
-copy_test(7,"0101101")
-copy_test(12,"010110110100")
+
 

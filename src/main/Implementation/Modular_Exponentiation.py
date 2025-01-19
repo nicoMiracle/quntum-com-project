@@ -1,5 +1,5 @@
 #Nicole Nechita, rone8293
-
+#Simon Nilsson sini3794
 from qiskit import QuantumCircuit, QuantumRegister, ClassicalRegister, transpile
 from qiskit_aer import AerSimulator   
 
@@ -9,7 +9,7 @@ def set_bits(circuit, a, x):
     for i in reversed(range(len(a))):
         if x[i] == "1":
             circuit.x(a[i])
-
+ 
 #the copy function 1.2
 def copy(circuit, A, B):
     amount_registers = len(A)
