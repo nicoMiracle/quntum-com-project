@@ -154,6 +154,7 @@ def modulo(circuit, n, x, r, aux):
     
 ## need len(a)*3+3
 def add_mod(circuit, n, a, b, r, aux):
+    #create new quantum circuit circuit, but empty
     qa = QuantumRegister(len(a), "A")
     qb = QuantumRegister(len(a), "B")
     qr = QuantumRegister(len(a), "R")
@@ -168,6 +169,35 @@ def add_mod(circuit, n, a, b, r, aux):
     
     circuit.append(add_gate, get_qbits([], [a, b, a_r, a_aux]))
     modulo(circuit, n, a_r, r, m_aux)
+
+def add_mod_second(circuit, n,a ,b ,r ,aux):
+    #specificy locations in AUX register
+    aux_n_list=aux[1:len(a)+1]
+    aux_r_list = aux[1+len(a):1+len(a)*2]
+    aux_calculation_list = aux[1+len(a)*2:3+len(a)*3] #qubits for addition/subtraction
+    aux_greater_list = aux[2+len(a)*2:3+len(a)*3] #qubits for comparison
+    
+    #calculate A+B
+    addition(circuit,a,b,aux_r_list,aux_calculation_list)
+    
+    #check if A+B is same or greater than N
+    set_bits(circuit,aux_n_list,n)
+    greater_than_or_equal(circuit,aux_r_list,aux_n_list,aux[0],aux_greater_list)
+    controlled_subtraction(circuit,aux_r_list,aux_n_list,r,aux_calculation_list,aux[0])
+    
+    #copy A+B to r if N is bigger
+    circuit.x(aux[0])
+    for i in range(len(a)):
+        circuit.ccx(aux[0],aux_r_list[i],r[i])
+        
+    circuit.x(aux[0])
+    circuit.barrier()
+    
+    #reset all aux qubits to 0
+    greater_than_or_equal(circuit,aux_r_list,aux_n_list,aux[0],aux_greater_list)
+    set_bits(circuit,aux_n_list,n)
+    addition(circuit,a,b,aux_r_list,aux_calculation_list)
+    #print(circuit)
     
     
 ## need len(a)*4+3
@@ -202,7 +232,7 @@ def aer_simulation(circuit):
     # compatible with the backend
     compiled_circuit = transpile(circuit, backend )
     # Execute the circuit on the qasm simulator .
-    n_shots = 10 # default number of shots .
+    n_shots = 3 # default number of shots .
     job_sim = backend.run(compiled_circuit, shots = n_shots)
     # Extract Results
     result_sim = job_sim . result ()
@@ -213,7 +243,7 @@ def aer_simulation(circuit):
 
 """
 num_size = 3
-aux_size = num_size*4+3 # +2 is needed for addition
+aux_size = num_size*3+2 # +2 is needed for addition
 classic_size = num_size#aux_size # | num_size
 
 a = QuantumRegister(num_size,"a")
@@ -224,13 +254,50 @@ c_bits = ClassicalRegister(classic_size)
 circuit = QuantumCircuit(a,b,r,aux,c_bits)
 set_bits(circuit, a, "011")
 set_bits(circuit, b, "011")
-double_mod(circuit, "100", a, r, aux)
+add_mod(circuit, "100", a,b, r, aux)
 ##mesure if aux is empty
 circuit.barrier()
 # circuit.measure(aux, [*reversed(range(len(aux)))])
 ##mesure result
-circuit.measure(r, [*reversed(range(len(r)))])
+#circuit.measure(r, [*reversed(range(len(r)))])
+circuit.measure(r,c_bits)
+
 print(circuit)
 # basic_simulation(circuit)
 aer_simulation(circuit)
 """
+
+#controlled subtraction, which subtracts only if A+B is >= N
+def controlled_subtraction(circuit, a, b, r, aux,control):
+    circuit.cx(control,b)
+    circuit.cx(control,aux[1])  
+    
+    for i in range(len(a)):
+    
+        _p = 1+i
+        controlled_full_adder(circuit, a[i], b[i], r[i], aux[_p], aux[_p+1], aux[0],control)
+    
+    for i in reversed(range(len(a))):
+        _p = 1+i
+        circuit.mcx([control,a[i],b[i]], aux[_p+1])
+        circuit.ccx(control,a[i],b[i])
+        circuit.mcx([control,b[i],aux[_p]],aux[_p+1])
+        circuit.ccx(control,a[i],b[i])
+    circuit.cx(control,b)
+    circuit.cx(control,aux[1])
+    # circuit.barrier()
+
+#a function made for only doing full adder if A+B is bigger or equal to N
+def controlled_full_adder(circuit,a,b,r,c_in,c_out,aux,control):
+    circuit.ccx(control,a,aux)
+    circuit.ccx(control,b,aux)
+    circuit.ccx(control,aux,r)
+    circuit.ccx(control,c_in,r)
+
+    circuit.mcx([control,a,b],c_out)
+    circuit.ccx(control,a,b)
+    circuit.mcx([control,b,c_in],c_out)
+    circuit.ccx(control,a,b)
+    
+    circuit.ccx(control,b,aux)
+    circuit.ccx(control,a,aux)
