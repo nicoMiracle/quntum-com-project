@@ -48,7 +48,6 @@ def full_adder(circuit,a,b,r,c_in,c_out,aux):
 def addition(circuit, a, b, r, aux):  
     #do the calculation  
     for i in range(len(a)):
-        _p = 1+i
         full_adder(circuit, a[i], b[i], r[i], aux[i+1], aux[i+2], aux[0])
     # reset aux
     for i in reversed(range(len(a))):
