@@ -236,7 +236,7 @@ test_mod_add(3,"010","010","110","100")
 test_mod_add(3,"010","011","111","101")
 
 
-print("these tests dont run cus we run into the limit of qubits in aer")
+print("these tests run slowly cus we run into the limit of qubits in aer")
 test_mod_add(4,"0000","0000","0001","0000")
 test_mod_add(4,"0001","0001","0010","0000")
 test_mod_add(4,"0000","0001","0010","0001")
@@ -244,7 +244,6 @@ test_mod_add(4,"0001","0001","0011","0010")
 
 test_mod_add(4,"0011","0011","0101","0001")
 test_mod_add(4,"0110","0011","0111","0010")
-test_mod_add(4,"0000","0001","0010","0001")
 test_mod_add(4,"0000","0001","0010","0001")
 
 test_mod_add(4,"0001","0101","1010","0110")
