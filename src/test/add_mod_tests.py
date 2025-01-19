@@ -1,4 +1,5 @@
 #Nicole Nechita, rone8293
+#Simon Nilsson sini3794
 from qiskit import QuantumCircuit,QuantumRegister, ClassicalRegister
 from qiskit . providers . basic_provider import BasicSimulator
 from qiskit import transpile
