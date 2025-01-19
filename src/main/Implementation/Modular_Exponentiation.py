@@ -170,6 +170,7 @@ def add_mod(circuit, n, a, b, r, aux):
     circuit.append(add_gate, get_qbits([], [a, b, a_r, a_aux]))
     modulo(circuit, n, a_r, r, m_aux)
 
+#my own version of add_mod
 def add_mod_second(circuit, n,a ,b ,r ,aux):
     #specificy locations in AUX register
     aux_n_list=aux[1:len(a)+1]
@@ -179,7 +180,7 @@ def add_mod_second(circuit, n,a ,b ,r ,aux):
     
     #calculate A+B
     addition(circuit,a,b,aux_r_list,aux_calculation_list)
-    
+
     #check if A+B is same or greater than N
     set_bits(circuit,aux_n_list,n)
     greater_than_or_equal(circuit,aux_r_list,aux_n_list,aux[0],aux_greater_list)
@@ -198,7 +199,38 @@ def add_mod_second(circuit, n,a ,b ,r ,aux):
     set_bits(circuit,aux_n_list,n)
     addition(circuit,a,b,aux_r_list,aux_calculation_list)
     #print(circuit)
+
+#Nicoles own version of double
+def times_two_mod(circuit,N,A,R,AUX):
+    aux_n_list=AUX[1:len(A)+1]
+    aux_r_list = AUX[1+len(A):1+len(A)*2]
+    aux_calculation_list = AUX[1+len(A)*2:3+len(A)*3] #qubits for addition/subtraction
+    aux_greater_list = AUX[2+len(A)*2:3+len(A)*3] #qubits for comparison
+
+    copy(circuit,A,aux_r_list)
+    addition(circuit,A,aux_r_list,R,aux_calculation_list)
+    copy(circuit,A,aux_r_list)
+    copy(circuit,R,aux_r_list)
+    copy(circuit,aux_r_list,R)
+    set_bits(circuit,aux_n_list,N)
     
+    greater_than_or_equal(circuit,aux_r_list,aux_n_list,AUX[0],aux_greater_list)
+    controlled_subtraction(circuit,aux_r_list,aux_n_list,R,aux_calculation_list,AUX[0])
+    circuit.barrier()
+    circuit.x(AUX[0])
+    for i in range(len(A)):
+        circuit.ccx(AUX[0],aux_r_list[i],R[i])
+        
+    circuit.x(AUX[0])
+    circuit.barrier()
+    
+    #reset all aux qubits to 0
+    greater_than_or_equal(circuit,aux_r_list,aux_n_list,AUX[0],aux_greater_list)
+    set_bits(circuit,aux_n_list,N)
+    copy(circuit,A,aux_n_list)
+    addition(circuit,A,aux_n_list,aux_r_list,aux_calculation_list)
+    copy(circuit,A,aux_n_list)
+    circuit.barrier()
     
 ## need len(a)*4+3
 def double_mod(circuit, n, a, r, aux):
@@ -301,3 +333,4 @@ def controlled_full_adder(circuit,a,b,r,c_in,c_out,aux,control):
     
     circuit.ccx(control,b,aux)
     circuit.ccx(control,a,aux)
+
