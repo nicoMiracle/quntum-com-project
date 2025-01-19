@@ -16,8 +16,8 @@ def set_test(qubits, x):
     circuit.measure(qubits,[0,1,2,3])
 
     print("Expected: " + x)
-    print(circuit)
     basic_simulation(circuit)
+    print()
     
     
 def basic_simulation(circuit):
@@ -28,7 +28,7 @@ def basic_simulation(circuit):
     counts = result.get_counts()
     prob = { key : value / n_shots for key , value in counts.items() }
     print (" Probabilities : ", prob )
-    
+print("set_bits test: ")
 set_test([0,1,2,3], "0001")
 set_test([0,1,2,3], "0010")
 set_test([0,1,2,3], "0101")

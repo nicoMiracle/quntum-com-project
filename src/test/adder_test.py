@@ -48,6 +48,7 @@ def add_test(value_a, value_b, value_c_in, expected):
 
     print("Expected: " + expected)
     basic_simulation(circuit)
+    print()
     
     
 def basic_simulation(circuit):
@@ -58,7 +59,7 @@ def basic_simulation(circuit):
     counts = result.get_counts()
     prob = { key : value / n_shots for key , value in counts.items() }
     print (" Probabilities : ", prob )
-
+print("full_adder test: " )
 print("OBS: First digit is sum, second is carry_out.") 
 add_test("0", "0","0", "00")
 add_test("1", "1","0", "01")

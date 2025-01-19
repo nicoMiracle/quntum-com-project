@@ -1,7 +1,7 @@
 #Nicole Nechita, rone8293
 
-from qiskit import QuantumCircuit,QuantumRegister, ClassicalRegister
-from qiskit . providers . basic_provider import BasicSimulator
+from qiskit import QuantumCircuit, QuantumRegister, ClassicalRegister, transpile
+from qiskit_aer import AerSimulator   
 
 #the set_bits function 1.1
 def set_bits(circuit, a, x):
@@ -15,7 +15,6 @@ def copy(circuit, A, B):
     amount_registers = len(A)
     for i in range(amount_registers):
         circuit.cx(A[i],B[i])
-        # circuit.barrier()
 
 def full_adder(circuit,a,b,r,c_in,c_out,aux):
     #a XOR b XOR c_in -> r
@@ -24,20 +23,16 @@ def full_adder(circuit,a,b,r,c_in,c_out,aux):
     circuit.cx(b,aux)
     circuit.cx(aux,r)
     circuit.cx(c_in,r)
-    # circuit.barrier()
 
     #do gates for carry_out
     circuit.ccx(a,b,c_out)
     circuit.cx(a,b)
     circuit.ccx(b,c_in,c_out)
     circuit.cx(a,b)
-    # circuit.barrier()
 
     #reset AUX by doing the operation again
-    
     circuit.cx(b,aux)
     circuit.cx(a,aux)
-    # circuit.barrier()
 
 # Addition function
 # adds two values made with n number of qubits
@@ -50,25 +45,20 @@ def full_adder(circuit,a,b,r,c_in,c_out,aux):
 # b: list of qubit in size n
 # r: list of qubit in size n
 # aux: list of qubits with minimum size of n+2
-def addition(circuit, a, b, r, aux):    
+def addition(circuit, a, b, r, aux):  
+    #do the calculation  
     for i in range(len(a)):
-        #initialise _p
         _p = 1+i
-        full_adder(circuit, a[i], b[i], r[i], aux[_p], aux[_p+1], aux[0])
-    
-    #reset aux to 0
+        full_adder(circuit, a[i], b[i], r[i], aux[i+1], aux[i+2], aux[0])
+    # reset aux
     for i in reversed(range(len(a))):
-        _p = 1+i
-        circuit.ccx(a[i],b[i], aux[_p+1])
+        circuit.ccx(a[i],b[i], aux[i+2])
         circuit.cx(a[i],b[i])
-        circuit.ccx(b[i],aux[_p],aux[_p+1])
+        circuit.ccx(b[i],aux[i+1],aux[i+2])
         circuit.cx(a[i],b[i])
-        #circuit.barrier()
-    #circuit.barrier()
 
 # subtraction
 # subtract a with b
-#
 # prams:
 # circuit: QuantumCircuit
 # a: list of qubit in size n
@@ -76,35 +66,34 @@ def addition(circuit, a, b, r, aux):
 # r: list of qubit in size n
 # aux: list of qubits with minimum size of n+2
 def subtraction(circuit, a, b, r, aux):
-    circuit.x(b)
-    circuit.x(aux[1])  
-    # circuit.barrier()
-    addition(circuit, a, b, r, aux)
-
+    # flip b and set first carry_in to 1
     circuit.x(b)
     circuit.x(aux[1])
-    # circuit.barrier()
+    # do addition
+    addition(circuit, a, b, r, aux)
+    # rest aux
+    circuit.x(b)
+    circuit.x(aux[1])
 
-
-## made my own since i didnt want to mess with stuff i didnt know how it worked
 # it calculates the comparison by calculating the carry out in a subtraction
 def greater_than_or_equal(circuit,a,b,r,aux):
+    # flip b and set first carry_in to 1
     circuit.x(b)
     circuit.x(aux[0])
+    # claculate the carry_out
     for i in range(len(a)):
-        _p = 1+i
-        circuit.ccx(a[i],b[i], aux[_p])
+        circuit.ccx(a[i],b[i], aux[i+1])
         circuit.cx(a[i],b[i])
-        circuit.ccx(b[i],aux[_p-1],aux[_p])
+        circuit.ccx(b[i],aux[i],aux[i+1])
         circuit.cx(a[i],b[i])
         circuit.barrier()
-    #last bit in the aux register
-    circuit.cx(aux[-1], r)
+    # places the last carry_out into r
+    circuit.cx(aux[len(a)], r)
+    # reset aux
     for i in reversed(range(len(a))):
-        _p = 1+i
-        circuit.ccx(a[i],b[i], aux[_p])
+        circuit.ccx(a[i],b[i], aux[i+1])
         circuit.cx(a[i],b[i])
-        circuit.ccx(b[i],aux[_p-1],aux[_p])
+        circuit.ccx(b[i],aux[i],aux[i+1])
         circuit.cx(a[i],b[i])
         circuit.barrier()
     circuit.x(b)
@@ -115,149 +104,92 @@ def greater_than_or_equal(circuit,a,b,r,aux):
 def get_qbits(control_qbits, listoflist):
     for i in range(len(listoflist)):
         control_qbits.extend(listoflist[i])
-    return control_qbits    
-        
-#modulo
-# aux needs to be len(x)*2+3
-def modulo(circuit, n, x, r, aux):
-    qa = QuantumRegister(len(x), "sa")
-    qb = QuantumRegister(len(x), "sb")
-    qr = QuantumRegister(len(x), "sr")
-    qaux = QuantumRegister(len(x)+2,"sAUX")
-    qu = QuantumCircuit(qa,qb,qr,qaux)
-    subtraction(qu, qa, qb, qr, qaux)
-    sub_gate = qu.to_gate(None, "mysub").control(1)
-    qca = QuantumRegister(len(x), "ca")
-    qcb = QuantumRegister(len(x), "cb")
-    qc = QuantumCircuit(qca,qcb)
-    copy(qc, qca, qcb)
-    copy_gate = qc.to_gate(None, "mycopy").control(1)
-    qna = QuantumRegister(len(x), "ga")
-    qnb = QuantumRegister(len(x), "gb")
-    qnr = QuantumRegister(1, "gr")
-    qnaux = QuantumRegister(len(x)+1,"gAUX")
-    qnu = QuantumCircuit(qna,qnb,qnr,qnaux)
-    greater_than_or_equal(qnu, qna, qnb, qnr, qnaux)
-    comp_gate = qnu.to_gate(None, "mycomp")
-    
-    n_q = aux[1: len(x)+1]
-    c_a = aux[len(x)+1: len(x)*2+2]
-    m_a = aux[len(x)+1: len(x)*2+3]
-    set_bits(circuit, n_q, n)
-    circuit.append(comp_gate, get_qbits([], [x, n_q, [aux[0]], c_a]))
-    circuit.append(sub_gate, get_qbits([aux[0]], [x, n_q, r, m_a]))
-    circuit.x(aux[0])
-    circuit.append(copy_gate, get_qbits([aux[0]], [x, r]))
-    circuit.x(aux[0])
-    circuit.append(comp_gate, get_qbits([], [x, n_q, [aux[0]], c_a]))
-    set_bits(circuit, n_q, n)
-    
-## need len(a)*3+3
+    return control_qbits
+
+## need aux len(a)*3+3
 def add_mod(circuit, n, a, b, r, aux):
-    #create new quantum circuit circuit, but empty
-    qa = QuantumRegister(len(a), "A")
-    qb = QuantumRegister(len(a), "B")
-    qr = QuantumRegister(len(a), "R")
-    qaux = QuantumRegister(len(a)+2,"AUX")
-    qu = QuantumCircuit(qa,qb,qr,qaux)
-    addition(qu, qa, qb, qr, qaux)
-    add_gate = qu.to_gate(None, "myadd")
+    #make controled gates
+    qcs_a = QuantumRegister(len(a), "a")
+    qcs_b = QuantumRegister(len(a), "b")
+    qcs_r = QuantumRegister(len(a), "r")
+    qcs_aux = QuantumRegister(len(a)+2,"aux")
+    qcs = QuantumCircuit(qcs_a,qcs_b,qcs_r,qcs_aux)
+    subtraction(qcs, qcs_a,qcs_b,qcs_r,qcs_aux)
+    sub_gate = qcs.to_gate(None, "mysub").control(1)
+    qcc_a = QuantumRegister(len(a), "a")
+    qcc_b = QuantumRegister(len(a), "b")
+    qc = QuantumCircuit(qcc_a,qcc_b)
+    copy(qc, qcc_a, qcc_b)
+    copy_gate = qc.to_gate(None, "mycopy").control(1)
     
-    a_r = aux[:len(a)]
-    a_aux= aux[len(a):len(a)*2+2]
-    m_aux = aux[len(a):len(a)*3+3]
+    #split aux
+    add_r = aux[1:len(a)+1]
+    n_qbits = aux[1+len(a): len(a)*2+1]
+    rest_aux= aux[1+len(a)*2:len(a)*3+3]
     
-    circuit.append(add_gate, get_qbits([], [a, b, a_r, a_aux]))
-    modulo(circuit, n, a_r, r, m_aux)
-
-#my own version of add_mod
-def add_mod_second(circuit, n,a ,b ,r ,aux):
-    #specificy locations in AUX register
-    aux_n_list=aux[1:len(a)+1]
-    aux_r_list = aux[1+len(a):1+len(a)*2]
-    aux_calculation_list = aux[1+len(a)*2:3+len(a)*3] #qubits for addition/subtraction
-    aux_greater_list = aux[2+len(a)*2:3+len(a)*3] #qubits for comparison
+    #claculate the addition
+    addition(circuit, a, b, add_r, rest_aux)
     
-    #calculate A+B
-    addition(circuit,a,b,aux_r_list,aux_calculation_list)
-
-    #check if A+B is same or greater than N
-    set_bits(circuit,aux_n_list,n)
-    greater_than_or_equal(circuit,aux_r_list,aux_n_list,aux[0],aux_greater_list)
-    controlled_subtraction(circuit,aux_r_list,aux_n_list,r,aux_calculation_list,aux[0])
-    
-    #copy A+B to r if N is bigger
+    #modulo
+    set_bits(circuit, n_qbits, n)
+    greater_than_or_equal(circuit, add_r, n_qbits, aux[0], rest_aux)
+    # do subtraction if add_r is grater then n
+    circuit.append(sub_gate, get_qbits([aux[0]], [add_r, n_qbits, r, rest_aux]))
+    # copy add_r into r if add_r is lees than n 
     circuit.x(aux[0])
-    for i in range(len(a)):
-        circuit.ccx(aux[0],aux_r_list[i],r[i])
-        
+    circuit.append(copy_gate, get_qbits([aux[0]], [add_r, r]))
     circuit.x(aux[0])
-    circuit.barrier()
+    # reset aux
+    greater_than_or_equal(circuit, add_r, n_qbits, aux[0], rest_aux)
+    set_bits(circuit, n_qbits, n)
+    addition(circuit, a, b, add_r, rest_aux)
     
-    #reset all aux qubits to 0
-    greater_than_or_equal(circuit,aux_r_list,aux_n_list,aux[0],aux_greater_list)
-    set_bits(circuit,aux_n_list,n)
-    addition(circuit,a,b,aux_r_list,aux_calculation_list)
-    #print(circuit)
-
-#Nicoles own version of double
-def times_two_mod(circuit,N,A,R,AUX):
-    aux_n_list=AUX[1:len(A)+1]
-    aux_r_list = AUX[1+len(A):1+len(A)*2]
-    aux_calculation_list = AUX[1+len(A)*2:3+len(A)*3] #qubits for addition/subtraction
-    aux_greater_list = AUX[2+len(A)*2:3+len(A)*3] #qubits for comparison
-
-    copy(circuit,A,aux_r_list)
-    addition(circuit,A,aux_r_list,R,aux_calculation_list)
-    copy(circuit,A,aux_r_list)
-    copy(circuit,R,aux_r_list)
-    copy(circuit,aux_r_list,R)
-    set_bits(circuit,aux_n_list,N)
+## need aux len(a)*3+3
+def times_two_mod(circuit, n, a, r, aux):
+    # make controled gates
+    qcs_a = QuantumRegister(len(a), "a")
+    qcs_b = QuantumRegister(len(a), "b")
+    qcs_r = QuantumRegister(len(a), "r")
+    qcs_aux = QuantumRegister(len(a)+2,"aux")
+    qcs = QuantumCircuit(qcs_a,qcs_b,qcs_r,qcs_aux)
+    subtraction(qcs, qcs_a,qcs_b,qcs_r,qcs_aux)
+    sub_gate = qcs.to_gate(None, "mysub").control(1)
+    qcc_a = QuantumRegister(len(a), "a")
+    qcc_b = QuantumRegister(len(a), "b")
+    qc = QuantumCircuit(qcc_a,qcc_b)
+    copy(qc, qcc_a, qcc_b)
+    copy_gate = qc.to_gate(None, "mycopy").control(1)
     
-    greater_than_or_equal(circuit,aux_r_list,aux_n_list,AUX[0],aux_greater_list)
-    controlled_subtraction(circuit,aux_r_list,aux_n_list,R,aux_calculation_list,AUX[0])
-    circuit.barrier()
-    circuit.x(AUX[0])
-    for i in range(len(A)):
-        circuit.ccx(AUX[0],aux_r_list[i],R[i])
-        
-    circuit.x(AUX[0])
-    circuit.barrier()
+    # split aux
+    add_r = aux[1:len(a)+1]
+    extra_value = aux[1+len(a): len(a)*2+1]
+    rest_aux= aux[1+len(a)*2:len(a)*3+3]
     
-    #reset all aux qubits to 0
-    greater_than_or_equal(circuit,aux_r_list,aux_n_list,AUX[0],aux_greater_list)
-    set_bits(circuit,aux_n_list,N)
-    copy(circuit,A,aux_n_list)
-    addition(circuit,A,aux_n_list,aux_r_list,aux_calculation_list)
-    copy(circuit,A,aux_n_list)
-    circuit.barrier()
+    # claculate the result of a * 2
+    copy(circuit, a, extra_value)
+    addition(circuit, a, extra_value, add_r, rest_aux)
+    copy(circuit, a, extra_value)
     
-## need len(a)*4+3
-def double_mod(circuit, n, a, r, aux):
-    b = aux[:len(a)]
-    copy(circuit, a, b)
-    a_aux = aux[len(a):]
-    add_mod(circuit, n, a, b, r, a_aux)
-    copy(circuit, a, b)
+    # modulo clauculation
+    set_bits(circuit, extra_value, n)
+    greater_than_or_equal(circuit, add_r, extra_value, aux[0], rest_aux)
+    # do subtraction if add_r is grater then n
+    circuit.append(sub_gate, get_qbits([aux[0]], [add_r, extra_value, r, rest_aux]))
+    # copy add_r into r if add_r is lees than n 
+    circuit.x(aux[0])
+    circuit.append(copy_gate, get_qbits([aux[0]], [add_r, r]))
+    circuit.x(aux[0])
+    # reset aux
+    greater_than_or_equal(circuit, add_r, extra_value, aux[0], rest_aux)
+    set_bits(circuit, extra_value, n)    
+    copy(circuit, a, extra_value)
+    addition(circuit, a, extra_value, add_r, rest_aux)
+    copy(circuit, a, extra_value)
     
 ##################################################################
 #                           Simulation
 ##################################################################
 
-def basic_simulation(circuit):
-    backend = BasicSimulator ()
-    n_shots = 1024 # Default number of shots is 1024
-    result = backend . run ( circuit , shots = n_shots ) . result ()
-    # Extract counts and probability distribution
-    counts = result.get_counts()
-    prob = { key : value / n_shots for key , value in counts.items() }
-    print (" Counts : ", counts )
-    print (" Probabilities : ", prob )
-
-# Import the transpile module
-from qiskit import transpile
-# Define the backend AerSimulator
-from qiskit_aer import AerSimulator   
 def aer_simulation(circuit):
     backend = AerSimulator()
     # Transpile the circuit to a set of gates
@@ -273,64 +205,25 @@ def aer_simulation(circuit):
     print(" Counts ", counts )
     print(" Probabilities :", probs )
 
-"""
+
 num_size = 3
-aux_size = num_size*3+2 # +2 is needed for addition
-classic_size = num_size#aux_size # | num_size
+aux_size = num_size*3+3 # amount needed for times_two_mod
+classic_size = num_size
 
 a = QuantumRegister(num_size,"a")
-b = QuantumRegister(num_size,"b")
+# b = QuantumRegister(num_size,"b")
 r = QuantumRegister(num_size,"r")
 aux = QuantumRegister(aux_size,"AUX")
 c_bits = ClassicalRegister(classic_size)
-circuit = QuantumCircuit(a,b,r,aux,c_bits)
+circuit = QuantumCircuit(a,r,aux,c_bits)
+
 set_bits(circuit, a, "011")
-set_bits(circuit, b, "011")
-add_mod(circuit, "100", a,b, r, aux)
-##mesure if aux is empty
+# set_bits(circuit, b, "011")
+times_two_mod(circuit, "100", a, r, aux)
 circuit.barrier()
-# circuit.measure(aux, [*reversed(range(len(aux)))])
-##mesure result
-#circuit.measure(r, [*reversed(range(len(r)))])
 circuit.measure(r,c_bits)
 
 print(circuit)
-# basic_simulation(circuit)
 aer_simulation(circuit)
-"""
 
-#controlled subtraction, which subtracts only if A+B is >= N
-def controlled_subtraction(circuit, a, b, r, aux,control):
-    circuit.cx(control,b)
-    circuit.cx(control,aux[1])  
-    
-    for i in range(len(a)):
-    
-        _p = 1+i
-        controlled_full_adder(circuit, a[i], b[i], r[i], aux[_p], aux[_p+1], aux[0],control)
-    
-    for i in reversed(range(len(a))):
-        _p = 1+i
-        circuit.mcx([control,a[i],b[i]], aux[_p+1])
-        circuit.ccx(control,a[i],b[i])
-        circuit.mcx([control,b[i],aux[_p]],aux[_p+1])
-        circuit.ccx(control,a[i],b[i])
-    circuit.cx(control,b)
-    circuit.cx(control,aux[1])
-    # circuit.barrier()
-
-#a function made for only doing full adder if A+B is bigger or equal to N
-def controlled_full_adder(circuit,a,b,r,c_in,c_out,aux,control):
-    circuit.ccx(control,a,aux)
-    circuit.ccx(control,b,aux)
-    circuit.ccx(control,aux,r)
-    circuit.ccx(control,c_in,r)
-
-    circuit.mcx([control,a,b],c_out)
-    circuit.ccx(control,a,b)
-    circuit.mcx([control,b,c_in],c_out)
-    circuit.ccx(control,a,b)
-    
-    circuit.ccx(control,b,aux)
-    circuit.ccx(control,a,aux)
 

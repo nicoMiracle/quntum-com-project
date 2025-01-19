@@ -69,16 +69,16 @@ def greater_than_or_equal(circuit,a,b,r,aux):
         circuit.cx(a[i],b[i])
         circuit.ccx(b[i],aux[_p-1],aux[_p])
         circuit.cx(a[i],b[i])
-        circuit.barrier()
+        # circuit.barrier()
     #last bit in the aux register
-    circuit.cx(aux[-1], r)
+    circuit.cx(aux[len(a)], r)
     for i in reversed(range(len(a))):
         _p = 1+i
         circuit.ccx(a[i],b[i], aux[_p])
         circuit.cx(a[i],b[i])
         circuit.ccx(b[i],aux[_p-1],aux[_p])
         circuit.cx(a[i],b[i])
-        circuit.barrier()
+        # circuit.barrier()
     circuit.x(b)
     circuit.x(aux[0])
 
@@ -144,8 +144,58 @@ def controlled_full_adder(circuit,a,b,r,c_in,c_out,aux,control):
     circuit.ccx(control,b,aux)
     circuit.ccx(control,a,aux)
 
-def test_mod_add(num_size,value_a,value_b,value_n,expected):
+##for use in circuit.append
+def get_qbits(control_qbits, listoflist):
+    for i in range(len(listoflist)):
+        control_qbits.extend(listoflist[i])
+    return control_qbits    
 
+
+def subtraction(circuit, a, b, r, aux):
+    circuit.x(b)
+    circuit.x(aux[1])  
+    # circuit.barrier()
+    addition(circuit, a, b, r, aux)
+
+    circuit.x(b)
+    circuit.x(aux[1])
+    # circuit.barrier()
+def copy(circuit, A, B):
+    amount_registers = len(A)
+    for i in range(amount_registers):
+        circuit.cx(A[i],B[i])
+
+    
+def add_mod(circuit, n, a, b, r, aux):
+    qcs_a = QuantumRegister(len(a), "a")
+    qcs_b = QuantumRegister(len(a), "b")
+    qcs_r = QuantumRegister(len(a), "r")
+    qcs_aux = QuantumRegister(len(a)+2,"aux")
+    qcs = QuantumCircuit(qcs_a,qcs_b,qcs_r,qcs_aux)
+    subtraction(qcs, qcs_a,qcs_b,qcs_r,qcs_aux)
+    sub_gate = qcs.to_gate(None, "mysub").control(1)
+    qcc_a = QuantumRegister(len(a), "a")
+    qcc_b = QuantumRegister(len(a), "b")
+    qc = QuantumCircuit(qcc_a,qcc_b)
+    copy(qc, qcc_a, qcc_b)
+    copy_gate = qc.to_gate(None, "mycopy").control(1)
+    
+    add_r = aux[1:len(a)+1]
+    n_qbits = aux[1+len(a): len(a)*2+1]
+    rest_aux= aux[1+len(a)*2:len(a)*3+3]
+    
+    addition(circuit, a, b, add_r, rest_aux)
+    set_bits(circuit, n_qbits, n)
+    greater_than_or_equal(circuit, add_r, n_qbits, aux[0], rest_aux)
+    circuit.append(sub_gate, get_qbits([aux[0]], [add_r, n_qbits, r, rest_aux]))
+    circuit.x(aux[0])
+    circuit.append(copy_gate, get_qbits([aux[0]], [add_r, r]))
+    circuit.x(aux[0])
+    greater_than_or_equal(circuit, add_r, n_qbits, aux[0], rest_aux)
+    set_bits(circuit, n_qbits, n)
+    addition(circuit, a, b, add_r, rest_aux)
+
+def test_mod_add(num_size,value_a,value_b,value_n,expected):
     a = QuantumRegister(num_size,"a")
     b = QuantumRegister(num_size,"b")
     r = QuantumRegister(num_size,"r")
@@ -154,16 +204,17 @@ def test_mod_add(num_size,value_a,value_b,value_n,expected):
     circuit = QuantumCircuit(a,b,r,aux,c_bits)
     set_bits(circuit, a, value_a)
     set_bits(circuit, b, value_b)
-    add_mod_second(circuit, value_n, a,b, r, aux)
-    print("Expected: "+expected)
+    add_mod(circuit, value_n, a,b, r, aux)
+    print("in: " +value_a+ " + "+value_b+ " mod( " +value_n+ " ) Expected: "+expected)
     circuit.measure(r,c_bits)
     aer_simulation(circuit)
+    print()
 
 def aer_simulation(circuit):
     backend = AerSimulator()
     # Transpile the circuit to a set of gates
     # compatible with the backend
-    compiled_circuit = transpile(circuit, backend )
+    compiled_circuit = transpile(circuit )
     # Execute the circuit on the qasm simulator .
     n_shots = 3 # default number of shots .
     job_sim = backend.run(compiled_circuit, shots = n_shots)
@@ -184,6 +235,8 @@ test_mod_add(3,"101","010","111","000")
 test_mod_add(3,"010","010","110","100")
 test_mod_add(3,"010","011","111","101")
 
+
+print("these tests dont run cus we run into the limit of qubits in aer")
 test_mod_add(4,"0000","0000","0001","0000")
 test_mod_add(4,"0001","0001","0010","0000")
 test_mod_add(4,"0000","0001","0010","0001")
