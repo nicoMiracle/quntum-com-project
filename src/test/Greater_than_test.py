@@ -81,7 +81,10 @@ def aer_simulation(circuit):
     probs = {key: value / n_shots for key, value in counts.items()}
     print(" Counts ", counts )
     print(" Probabilities :", probs )
-    
+
+test_comparison("0","1","0")
+test_comparison("11","11","1")
+test_comparison("101","110","0")
 test_comparison("1010","1001","1")
 test_comparison("1111","1111","1")
 test_comparison("1111","1110","1")
@@ -94,3 +97,4 @@ test_comparison("0011","0001","1")
 test_comparison("0110","0110","1")
 test_comparison("0000","1111","0")
 test_comparison("1111","0000","1")
+test_comparison("10100","10010","1")
