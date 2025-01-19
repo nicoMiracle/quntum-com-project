@@ -78,7 +78,7 @@ def greater_than_or_equal(circuit,a,b,r,aux):
         circuit.cx(a[i],b[i])
         circuit.barrier()
     #last bit in the aux register
-    circuit.cx(aux[-1], r)
+    circuit.cx(aux[len(a)], r)
     for i in reversed(range(len(a))):
         _p = 1+i
         circuit.ccx(a[i],b[i], aux[_p])
@@ -88,40 +88,6 @@ def greater_than_or_equal(circuit,a,b,r,aux):
         circuit.barrier()
     circuit.x(b)
     circuit.x(aux[0])
-
-## need aux len(a)*3+3
-def times_two_mod(circuit, n, a, r, aux):
-    qcs_a = QuantumRegister(len(a), "a")
-    qcs_b = QuantumRegister(len(a), "b")
-    qcs_r = QuantumRegister(len(a), "r")
-    qcs_aux = QuantumRegister(len(a)+2,"aux")
-    qcs = QuantumCircuit(qcs_a,qcs_b,qcs_r,qcs_aux)
-    subtraction(qcs, qcs_a,qcs_b,qcs_r,qcs_aux)
-    sub_gate = qcs.to_gate(None, "mysub").control(1)
-    qcc_a = QuantumRegister(len(a), "a")
-    qcc_b = QuantumRegister(len(a), "b")
-    qc = QuantumCircuit(qcc_a,qcc_b)
-    copy(qc, qcc_a, qcc_b)
-    copy_gate = qc.to_gate(None, "mycopy").control(1)
-    
-    add_r = aux[1:len(a)+1]
-    extra_value = aux[1+len(a): len(a)*2+1]
-    rest_aux= aux[1+len(a)*2:len(a)*3+3]
-    
-    copy(circuit, a, extra_value)
-    addition(circuit, a, extra_value, add_r, rest_aux)
-    copy(circuit, a, extra_value)
-    set_bits(circuit, extra_value, n)
-    greater_than_or_equal(circuit, add_r, extra_value, aux[0], rest_aux)
-    circuit.append(sub_gate, get_qbits([aux[0]], [add_r, extra_value, r, rest_aux]))
-    circuit.x(aux[0])
-    circuit.append(copy_gate, get_qbits([aux[0]], [add_r, r]))
-    circuit.x(aux[0])
-    greater_than_or_equal(circuit, add_r, extra_value, aux[0], rest_aux)
-    set_bits(circuit, extra_value, n)
-    copy(circuit, a, extra_value)
-    addition(circuit, a, extra_value, add_r, rest_aux)
-    copy(circuit, a, extra_value)
 
 def get_qbits(control_qbits, listoflist):
     for i in range(len(listoflist)):
@@ -135,11 +101,44 @@ def subtraction(circuit, a, b, r, aux):
 
     circuit.x(b)
     circuit.x(aux[1])
+
+## need aux len(a)*3+3
+def times_two_mod(circuit, n, a, r, aux):
+    qcs_a = QuantumRegister(len(a), "a")
+    qcs_b = QuantumRegister(len(a), "b")
+    qcs_r = QuantumRegister(len(a), "r")
+    qcs_aux = QuantumRegister(len(a)+2,"aux")
+    qcs = QuantumCircuit(qcs_a,qcs_b,qcs_r,qcs_aux)
+    subtraction(qcs, qcs_a,qcs_b,qcs_r,qcs_aux)
+    sub_gate = qcs.to_gate(None, "mysub").control(1)
+    qcc_a = QuantumRegister(len(a), "a")
+    qcc_b = QuantumRegister(len(a), "b")
+    qcc = QuantumCircuit(qcc_a,qcc_b)
+    copy(qcc, qcc_a, qcc_b)
+    copy_gate = qcc.to_gate(None, "mycopy").control(1)
     
-def copy(circuit, A, B):
-    amount_registers = len(A)
-    for i in range(amount_registers):
-        circuit.cx(A[i],B[i])
+    add_r = aux[1:len(a)+1]
+    extra_value = aux[1+len(a): len(a)*2+1]
+    rest_aux= aux[1+len(a)*2:len(a)*3+3]
+    
+    copy(circuit, a, extra_value)
+    addition(circuit, a, extra_value, add_r, rest_aux)
+    copy(circuit, a, extra_value)
+    
+    set_bits(circuit, extra_value, n)
+    greater_than_or_equal(circuit, add_r, extra_value, aux[0], rest_aux)
+    circuit.append(sub_gate, get_qbits([aux[0]], [add_r, extra_value, r, rest_aux]))
+    circuit.x(aux[0])
+    circuit.append(copy_gate, get_qbits([aux[0]], [add_r, r]))
+    circuit.x(aux[0])
+    greater_than_or_equal(circuit, add_r, extra_value, aux[0], rest_aux)
+    set_bits(circuit, extra_value, n)
+    
+    copy(circuit, a, extra_value)
+    addition(circuit, a, extra_value, add_r, rest_aux)
+    copy(circuit, a, extra_value)
+
+
 
 def test_double_add(num_size,value_a,value_n,expected):
 
